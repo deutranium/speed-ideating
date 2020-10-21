@@ -1,10 +1,11 @@
 import os
-import sqlite3
 import sys
 
 import discord
 from tabulate import tabulate
 from dotenv import load_dotenv
+
+from sql import SQL
 
 load_dotenv()
 client = discord.Client()
@@ -12,14 +13,17 @@ client = discord.Client()
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = os.getenv("DISCORD_GUILD")
 
+db = None
+
 # TODO: Add all the teams here
-scoreboard = [
-    ["1", "The Boys", 20],
-    ["2", "MCDT", 20],
-    ["3", "Fluffy's 3 Heads", 20],
-    ["4", "Mario & the other guy", 20],
-    ["5", "www.", 20],
-    ["6", "The Intrepids", 20],
+# Make sure they are in order
+team_names = [
+    "The Boys",
+    "MCDT",
+    "Fluffy's 3 Heads",
+    "Mario & the other guy",
+    "www.",
+    "The Intrepids",
 ]
 
 # admin role ID
@@ -42,7 +46,10 @@ update <team_no> <score>: Increase/decrease the score of team `team_no` by `scor
 
 # Print scoreboard
 def print_scoreboard():
-    data = scoreboard
+    """
+    Returns the scoreboard as a string
+    """
+    data = db.get_scoreboard()
     headers = ["Team #", "Name", "Score"]
     content = tabulate(data, headers, tablefmt="fancy_grid")
 
@@ -50,9 +57,15 @@ def print_scoreboard():
 
 
 # Update team scores
-def update_score(team, score):
-    initial = scoreboard[team - 1][2]
-    scoreboard[team - 1][2] = initial + score
+def update_score(team_id, score_delta):
+    """
+    Updates the score
+    If successful, returns the new scoreboard otherwise an error message
+    """
+    if db.update_score(team_id, score_delta):
+        return print_scoreboard()
+
+    return "Failed to update score"
 
 
 # TODO: ADD ALL THE UPDATES TO READ-ONLY HISTORY CHANNEL
@@ -80,6 +93,7 @@ async def on_message(message):
     # Check bot prefix
     if (cntnt.split()[0] != "!si") or message.author.bot:
         return
+
     # Check if the author is an admin
     if admin_id not in [i.id for i in message.author.roles]:
         await message.channel.send("Only admins allowed")
@@ -98,51 +112,23 @@ async def on_message(message):
 
     # update team score
     elif cntnt.split()[0] == "update":
-        stuff = cntnt.split()
-        update_score(int(stuff[1]), int(stuff[2]))
+        _, team_id, delta = cntnt.split()
+        msg = update_score(int(team_id), int(delta))
         # add_to_history(stuff)
-        msg = print_scoreboard()
     await message.channel.send(msg)
 
 
-def setup_db(path="./team-info.db"):
-    try:
-        conn = sqlite3.connect(path)
-        return conn
-    except sqlite3.Error as e:
-        print(e)
-
-    return None
-
-
-def setup_table(conn):
-    create_table_scoreboard = r"""
-create table if not exists scoreboard (
-  id integer primary key,
-  team_name text not null,
-  score integer not null
-);
-"""
-    try:
-        c = conn.cursor()
-        c.execute(create_table_scoreboard)
-        print("Table ready")
-    except sqlite3.Error as e:
-        print(e)
-
-
 def main():
+    global db
     # setup database and tables
-    conn = setup_db()
-    if conn is None:
-        return 1
+    db = SQL()
+    db.setup_table()
 
-    setup_table(conn)
+    if db.count_rows() == 0:
+        db.populate_table(team_names)
 
     client.run(TOKEN)
 
-    return 0
-
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
