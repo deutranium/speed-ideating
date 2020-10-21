@@ -20,11 +20,14 @@ scoreboard = [
 	["6", "The Intrepids", 20]
 ]
 
+# admin role ID
+admin_id = 767717031318782003
+
 # Help info
 def help():
 	help_msg = """```Commands (prepend `!si` to all the commands):
 
-	update <team_no> <+/-score>: Increase/decrease the score of team `team_no` by `score` on +/-
+	update <team_no> <score>: Increase/decrease the score of team `team_no` by `score`. Write the score as negative to decrease it
 	scoreboard:                     Display the scoreboard
 	history:                        Show history
 	```
@@ -68,6 +71,10 @@ async def on_message(message):
 
 	# Check bot prefix
 	if (cntnt.split()[0] != "!si")  or message.author.bot:
+		return
+	# Check if the author is an admin
+	if admin_id not in [i.id for i in message.author.roles]:
+		await message.channel.send("Only admins allowed")
 		return
 
 	# remove the prefix
