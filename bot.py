@@ -41,8 +41,8 @@ def help():
 ```
 Commands (prepend `!si` to all the commands):
 
-update <team_no> <score>: Change the score of team `team_no` by `score`.
-              scoreboard: Display the scoreboard
+update <teamA> <teamB> <score>: Transfer `score` points FROM teamA TO teamB
+                    scoreboard: Display the scoreboard
 ```
 """
 
@@ -60,12 +60,12 @@ def print_scoreboard():
     return "```\n" + content + "\n```"
 
 
-def update_score(team_id, score_delta):
+def update_score(from_team_id, to_team_id, score_delta):
     """
     Updates the score
     If successful, returns the new scoreboard otherwise nothing
     """
-    if db.update_score(team_id, score_delta):
+    if db.update_score(from_team_id, to_team_id, score_delta):
         return print_scoreboard()
 
     return None
@@ -119,17 +119,23 @@ async def on_message(message):
 
     # update team score
     elif cntnt.split()[0] == "update":
-        _, team_id, delta = cntnt.split()
-        logs = f"Team {team_id} score += {delta}"
-        msg = update_score(int(team_id), int(delta))
+        _, from_team_id, to_team_id, delta = cntnt.split()
 
-        if msg is None:
-            msg = "Failed to update score"
-            logs += "\nFAILED"
+        if delta < 0:
+            msg = "Only positive score can be transferred.\nCheck !si.help"
         else:
-            logs += "\nSuccessful"
+            logs = (
+                f"{delta} points to be transferred from {from_team_id} to {to_team_id}"
+            )
+            msg = update_score(int(from_team_id), int(to_team_id), int(delta))
 
-        await add_to_history(logs)
+            if msg is None:
+                msg = "Failed to update score"
+                logs += "\nFAILED"
+            else:
+                logs += "\nSuccessful"
+
+            await add_to_history(logs)
 
     await message.channel.send(msg)
 
