@@ -124,16 +124,14 @@ async def on_message(message):
         if int(delta) < 0:
             msg = "Only positive score can be transferred.\nCheck !si.help"
         else:
-            logs = (
-                f"{delta} points to be transferred from {from_team_id} to {to_team_id}"
-            )
+            logs = f"{message.author} requested for transferring {delta} points from {from_team_id} to {to_team_id}"
             msg = update_score(int(from_team_id), int(to_team_id), int(delta))
 
             if msg is None:
                 msg = "Failed to update score"
-                logs += "\nFAILED"
+                logs += "\n\nStatus: FAILED"
             else:
-                logs += "\nSuccessful"
+                logs += "\n\nStatus: Successful"
 
             await add_to_history(logs)
 
