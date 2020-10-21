@@ -1,5 +1,6 @@
 import os
 import sys
+from time import sleep
 
 import discord
 from tabulate import tabulate
@@ -14,6 +15,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = os.getenv("DISCORD_GUILD")
 
 db = None
+history_channel = None
 
 # TODO: Add all the teams here
 # Make sure they are in order
@@ -27,24 +29,26 @@ team_names = [
 ]
 
 # admin role ID
-admin_id = 767717031318782003
+ADMIN_ID = 767717031318782003
+HISTORY_CHANNEL_ID = 768235871223676948
 
-# Help info
+
 def help():
+    """
+    Shows help message
+    """
     help_msg = """
 ```
 Commands (prepend `!si` to all the commands):
 
-update <team_no> <score>: Increase/decrease the score of team `team_no` by `score`. Write the score as negative to decrease it
+update <team_no> <score>: Change the score of team `team_no` by `score`.
               scoreboard: Display the scoreboard
-                 history: Show history
 ```
 """
 
     return help_msg
 
 
-# Print scoreboard
 def print_scoreboard():
     """
     Returns the scoreboard as a string
@@ -56,22 +60,25 @@ def print_scoreboard():
     return "```\n" + content + "\n```"
 
 
-# Update team scores
 def update_score(team_id, score_delta):
     """
     Updates the score
-    If successful, returns the new scoreboard otherwise an error message
+    If successful, returns the new scoreboard otherwise nothing
     """
     if db.update_score(team_id, score_delta):
         return print_scoreboard()
 
-    return "Failed to update score"
+    return None
 
 
 # TODO: ADD ALL THE UPDATES TO READ-ONLY HISTORY CHANNEL
-# def add_to_history(message):
-# print(client)
-# print(client.guilds.channels)
+async def add_to_history(message):
+    global history_channel
+
+    if history_channel is None:
+        history_channel = client.get_channel(HISTORY_CHANNEL_ID)
+
+    await history_channel.send(message)
 
 
 @client.event
@@ -95,7 +102,7 @@ async def on_message(message):
         return
 
     # Check if the author is an admin
-    if admin_id not in [i.id for i in message.author.roles]:
+    if ADMIN_ID not in [i.id for i in message.author.roles]:
         await message.channel.send("Only admins allowed")
         return
 
@@ -113,8 +120,17 @@ async def on_message(message):
     # update team score
     elif cntnt.split()[0] == "update":
         _, team_id, delta = cntnt.split()
+        logs = f"Team {team_id} score += {delta}"
         msg = update_score(int(team_id), int(delta))
-        # add_to_history(stuff)
+
+        if msg is None:
+            msg = "Failed to update score"
+            logs += "\nFAILED"
+        else:
+            logs += "\nSuccessful"
+
+        await add_to_history(logs)
+
     await message.channel.send(msg)
 
 
@@ -136,3 +152,4 @@ if __name__ == "__main__":
             main()
         except Exception as e:
             print(e)
+            sleep(10)
