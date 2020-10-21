@@ -19,14 +19,28 @@ history_channel = None
 
 # TODO: Add all the teams here
 # Make sure they are in order
-team_names = [
-    "The Boys",
-    "MCDT",
-    "Fluffy's 3 Heads",
-    "Mario & the other guy",
-    "www.",
-    "The Intrepids",
-]
+team_names = ['The Boys',
+	'MCDT',
+	"Fluffy's 3 Heads",
+	'Mario & the other guy',
+	'www.',
+	'The Intrepids',
+	'Detty pigs',
+	'The Invincibles',
+	'Goal Diggers ',
+	'OJKMKC',
+	'HoynaHoyna <corrected>',
+	'El',
+	'Theen Bacche',
+	'Tesseract',
+	'XD',
+	'Ombani',
+	'Impostors',
+	'God particle',
+	'kryptomaniax ',
+	'Oreo Sheikhs',
+	'Sons of pitches',
+	'Strawberry Beans']
 
 # admin role ID
 ADMIN_ID = 767717031318782003
