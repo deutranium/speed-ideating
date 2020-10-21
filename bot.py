@@ -121,7 +121,7 @@ async def on_message(message):
     elif cntnt.split()[0] == "update":
         _, from_team_id, to_team_id, delta = cntnt.split()
 
-        if delta < 0:
+        if int(delta) < 0:
             msg = "Only positive score can be transferred.\nCheck !si.help"
         else:
             logs = (
