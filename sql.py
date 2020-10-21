@@ -102,10 +102,15 @@ class SQL:
         Returns whether the transaction was successful
         """
         c = self.conn.cursor()
+
         c.execute("select score from scoreboard where id=?", [from_team_id])
-        current_score = c.fetchall()[0][0]
-        from_new_score = current_score - delta
-        to_new_score = current_score + delta
+        from_current_score = c.fetchall()[0][0]
+
+        c.execute("select score from scoreboard where id=?", [to_team_id])
+        to_current_score = c.fetchall()[0][0]
+
+        from_new_score = from_current_score - delta
+        to_new_score = to_current_score + delta
 
         if from_new_score < 0:
             return False
