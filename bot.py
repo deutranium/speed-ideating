@@ -20,12 +20,27 @@ history_channel = None
 # TODO: Add all the teams here
 # Make sure they are in order
 team_names = [
-    "The Boys",
-    "MCDT",
+    'The Boys',
+    'MCDT',
     "Fluffy's 3 Heads",
-    "Mario & the other guy",
-    "www.",
-    "The Intrepids",
+    'Mario & the other guy',
+    'www.',
+    'The Intrepids',
+    'Detty pigs',
+    'The Invincibles',
+    'Goal Diggers ',
+    'HoynaHoyna',
+    'El',
+    'Theen Bacche',
+    'Tesseract',
+    'XD',
+    'Ombani',
+    'Impostors',
+    'God particle',
+    'kryptomaniax ',
+    'Oreo Sheikhs',
+    'Sons of pitches',
+    'Strawberry Beans',
 ]
 
 # admin role ID
@@ -55,7 +70,7 @@ def print_scoreboard():
     """
     data = db.get_scoreboard()
     headers = ["Team #", "Name", "Score"]
-    content = tabulate(data, headers, tablefmt="fancy_grid")
+    content = tabulate(data, headers)
 
     return "```\n" + content + "\n```"
 
