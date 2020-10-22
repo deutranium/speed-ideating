@@ -19,28 +19,29 @@ history_channel = None
 
 # TODO: Add all the teams here
 # Make sure they are in order
-team_names = ['The Boys',
-	'MCDT',
-	"Fluffy's 3 Heads",
-	'Mario & the other guy',
-	'www.',
-	'The Intrepids',
-	'Detty pigs',
-	'The Invincibles',
-	'Goal Diggers ',
-	'OJKMKC',
-	'HoynaHoyna <corrected>',
-	'El',
-	'Theen Bacche',
-	'Tesseract',
-	'XD',
-	'Ombani',
-	'Impostors',
-	'God particle',
-	'kryptomaniax ',
-	'Oreo Sheikhs',
-	'Sons of pitches',
-	'Strawberry Beans']
+team_names = [
+    'The Boys',
+    'MCDT',
+    "Fluffy's 3 Heads",
+    'Mario & the other guy',
+    'www.',
+    'The Intrepids',
+    'Detty pigs',
+    'The Invincibles',
+    'Goal Diggers ',
+    'HoynaHoyna',
+    'El',
+    'Theen Bacche',
+    'Tesseract',
+    'XD',
+    'Ombani',
+    'Impostors',
+    'God particle',
+    'kryptomaniax ',
+    'Oreo Sheikhs',
+    'Sons of pitches',
+    'Strawberry Beans',
+]
 
 # admin role ID
 ADMIN_ID = 767717031318782003
@@ -55,8 +56,8 @@ def help():
 ```
 Commands (prepend `!si` to all the commands):
 
-update <team_no> <score>: Change the score of team `team_no` by `score`.
-              scoreboard: Display the scoreboard
+update <teamA> <teamB> <score>: Transfer `score` points FROM teamA TO teamB
+                    scoreboard: Display the scoreboard
 ```
 """
 
@@ -69,17 +70,17 @@ def print_scoreboard():
     """
     data = db.get_scoreboard()
     headers = ["Team #", "Name", "Score"]
-    content = tabulate(data, headers, tablefmt="fancy_grid")
+    content = tabulate(data, headers)
 
     return "```\n" + content + "\n```"
 
 
-def update_score(team_id, score_delta):
+def update_score(from_team_id, to_team_id, score_delta):
     """
     Updates the score
     If successful, returns the new scoreboard otherwise nothing
     """
-    if db.update_score(team_id, score_delta):
+    if db.update_score(from_team_id, to_team_id, score_delta):
         return print_scoreboard()
 
     return None
@@ -133,17 +134,21 @@ async def on_message(message):
 
     # update team score
     elif cntnt.split()[0] == "update":
-        _, team_id, delta = cntnt.split()
-        logs = f"Team {team_id} score += {delta}"
-        msg = update_score(int(team_id), int(delta))
+        _, from_team_id, to_team_id, delta = cntnt.split()
 
-        if msg is None:
-            msg = "Failed to update score"
-            logs += "\nFAILED"
+        if int(delta) < 0:
+            msg = "Only positive score can be transferred.\nCheck !si.help"
         else:
-            logs += "\nSuccessful"
+            logs = f"{message.author} requested for transferring {delta} points from {from_team_id} to {to_team_id}"
+            msg = update_score(int(from_team_id), int(to_team_id), int(delta))
 
-        await add_to_history(logs)
+            if msg is None:
+                msg = "Failed to update score"
+                logs += "\n\nStatus: FAILED"
+            else:
+                logs += "\n\nStatus: Successful"
+
+            await add_to_history(logs)
 
     await message.channel.send(msg)
 

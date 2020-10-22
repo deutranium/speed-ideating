@@ -96,17 +96,23 @@ class SQL:
         rows = c.fetchall()
         return rows
 
-    def update_score(self, team_id, delta):
+    def update_score(self, from_team_id, to_team_id, delta):
         """
-        Add delta to team_id's score
+        Transfer delta points from from_team_id to to_team_id
         Returns whether the transaction was successful
         """
         c = self.conn.cursor()
-        c.execute("select score from scoreboard where id=?", [team_id])
-        current_score = c.fetchall()[0][0]
-        new_score = current_score + delta
 
-        if new_score < 0:
+        c.execute("select score from scoreboard where id=?", [from_team_id])
+        from_current_score = c.fetchall()[0][0]
+
+        c.execute("select score from scoreboard where id=?", [to_team_id])
+        to_current_score = c.fetchall()[0][0]
+
+        from_new_score = from_current_score - delta
+        to_new_score = to_current_score + delta
+
+        if from_new_score < 0:
             return False
 
         update_table_sql = """
@@ -114,7 +120,8 @@ class SQL:
             set score = ?
             where id = ?
         """
-        c.execute(update_table_sql, [new_score, team_id])
+        c.execute(update_table_sql, [from_new_score, from_team_id])
+        c.execute(update_table_sql, [to_new_score, to_team_id])
         self.conn.commit()
 
         return True
