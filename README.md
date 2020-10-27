@@ -25,4 +25,4 @@ pip3 install -r requirements.txt
 
 - **!si help**: Display help
 - **!si scoreboard**: Show the team scoreboard
-- **!si update \<team_number\> \<score\>**: Add `score` to `team_number`'s initial score. Use a negative value of `score` to subtract it
+- **!si update \<team A\> \<team B\> \<score\>**: Transfer `score` points from teamA to teamB
